@@ -1,96 +1,106 @@
-import { useState } from 'react';
-import { Stack, useRouter } from 'expo-router';
-import { Button, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Stack, useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Button,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-import { createAccount, signInWithEmail } from '@/services/tasks';
+import { createAccount, signInWithEmail } from "@/services/music";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleLogin() {
-    if (!validateForm()) return;
+    if (email.trim() === "" || password === "") {
+      setErrorMessage("Preencha o e-mail e a senha.");
+      return;
+    }
 
     try {
       setIsLoading(true);
       setErrorMessage(null);
+
       await signInWithEmail(email.trim(), password);
-      router.replace('/');
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+
+      router.replace("/");
+    } catch {
+      setErrorMessage("E-mail ou senha inválidos.");
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleCreateAccount() {
-    if (!validateForm()) return;
+    if (email.trim() === "" || password === "") {
+      setErrorMessage("Preencha o e-mail e a senha.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
 
     try {
       setIsLoading(true);
       setErrorMessage(null);
+
       await createAccount(email.trim(), password);
-      router.replace('/');
-    } catch (error) {
-      setErrorMessage(getErrorMessage(error));
+
+      router.replace("/");
+    } catch {
+      setErrorMessage("Não foi possível criar a conta.");
     } finally {
       setIsLoading(false);
     }
   }
 
-  function validateForm() {
-    if (!email.trim() || !password) {
-      setErrorMessage('Informe o e-mail e a senha.');
-      return false;
-    }
-
-    return true;
-  }
-
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: 'Entrar' }} />
+      <Stack.Screen options={{ title: "Login" }} />
+
       <View style={styles.content}>
-        <Text style={styles.eyebrow}>FIREBASE AUTHENTICATION</Text>
-        <Text style={styles.title}>Entre para continuar</Text>
-        <Text style={styles.description}>
-          Use seu e-mail e senha para acessar suas tarefas.
-        </Text>
+        <Text style={styles.title}>Minhas Músicas</Text>
+
+        <Text style={styles.text}>Entre para acessar suas músicas.</Text>
 
         <TextInput
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          onChangeText={setEmail}
-          placeholder="seu@email.com"
           style={styles.input}
+          placeholder="E-mail"
           value={email}
-        />
-        <TextInput
+          onChangeText={setEmail}
           autoCapitalize="none"
-          autoComplete="password"
-          onChangeText={setPassword}
-          placeholder="Senha"
-          secureTextEntry
+          keyboardType="email-address"
+        />
+
+        <TextInput
           style={styles.input}
+          placeholder="Senha"
           value={password}
+          onChangeText={setPassword}
+          secureTextEntry
         />
 
         <Button
+          title={isLoading ? "Aguarde..." : "Entrar"}
+          onPress={handleLogin}
           disabled={isLoading}
-          onPress={() => void handleLogin()}
-          title={isLoading ? 'Aguarde...' : 'Entrar'}
-          color="#2563eb"
         />
-        <View style={styles.buttonSpacing}>
+
+        <View style={styles.espaco}>
           <Button
-            disabled={isLoading}
-            onPress={() => void handleCreateAccount()}
             title="Criar conta"
-            color="#475569"
+            onPress={handleCreateAccount}
+            disabled={isLoading}
           />
         </View>
 
@@ -100,69 +110,43 @@ export default function LoginScreen() {
   );
 }
 
-function getErrorMessage(error: unknown) {
-  if (!(error instanceof Error)) return 'Não foi possível concluir a operação.';
-
-  if (error.message.includes('auth/invalid-credential')) {
-    return 'E-mail ou senha inválidos.';
-  }
-
-  if (error.message.includes('auth/email-already-in-use')) {
-    return 'Este e-mail já possui uma conta.';
-  }
-
-  if (error.message.includes('auth/weak-password')) {
-    return 'A senha precisa ter pelo menos 6 caracteres.';
-  }
-
-  return error.message;
-}
-
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f8fafc',
     flex: 1,
+    backgroundColor: "#eeeeee",
   },
+
   content: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 24,
+    justifyContent: "center",
+    padding: 20,
   },
-  eyebrow: {
-    color: '#2563eb',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 1.2,
-    marginBottom: 8,
-  },
+
   title: {
-    color: '#0f172a',
-    fontSize: 30,
-    fontWeight: '800',
+    fontSize: 24,
+    fontWeight: "bold",
     marginBottom: 10,
   },
-  description: {
-    color: '#64748b',
+
+  text: {
     fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 28,
+    marginBottom: 20,
   },
+
   input: {
-    backgroundColor: '#ffffff',
-    borderColor: '#cbd5e1',
-    borderRadius: 10,
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    fontSize: 16,
+    borderColor: "#cccccc",
+    padding: 12,
     marginBottom: 12,
-    minHeight: 50,
-    paddingHorizontal: 14,
   },
-  buttonSpacing: {
-    marginTop: 8,
+
+  espaco: {
+    marginTop: 10,
   },
+
   error: {
-    color: '#b91c1c',
-    lineHeight: 20,
-    marginTop: 16,
+    color: "red",
+    marginTop: 15,
   },
 });
